@@ -1,8 +1,8 @@
 package com.tw.step.rover.roversystem;
 
 import com.tw.step.rover.boundary.Boundary;
+import com.tw.step.rover.boundary.Plateau;
 import com.tw.step.rover.commands.CommandCreator;
-import com.tw.step.rover.commands.RoverCommand;
 import com.tw.step.rover.commands.RoverCommands;
 import com.tw.step.rover.exceptions.ParsingException;
 import com.tw.step.rover.position.Coordinate;
@@ -13,14 +13,21 @@ import com.tw.step.rover.rover.Rover;
 public class RoverSystemParser {
     private final RoverSystemScanner scanner;
     private final Navigator navigator;
-    private final Boundary boundary;
     private final CommandCreator commandCreator;
 
-    public RoverSystemParser(RoverSystemScanner scanner, Navigator navigator, Boundary boundary, CommandCreator commandCreator) {
+    public RoverSystemParser(
+            RoverSystemScanner scanner,
+            Navigator navigator,
+            CommandCreator commandCreator
+    ) {
         this.scanner = scanner;
         this.navigator = navigator;
-        this.boundary = boundary;
         this.commandCreator = commandCreator;
+    }
+
+    private Boundary parseBoundary() {
+        Coordinate topRight = scanner.scanCoordinate();
+        return new Plateau(new Coordinate(0, 0), topRight);
     }
 
     private Rover parseRover() {
@@ -34,36 +41,40 @@ public class RoverSystemParser {
     }
 
     public RoverSystem parse() {
-        RoverSystem roverSystem = new RoverSystem();
+        Boundary boundary = parseBoundary();
 
         Rover rover = parseRover();
-        roverSystem.addRover(rover);
 
-        RoverCommands roverCommands = parseRoverCommands();
+        RoverCommands roverCommands = parseRoverCommands(boundary);
+
+        RoverSystem roverSystem = new RoverSystem();
+
+        roverSystem.addRover(rover);
         roverSystem.addCommands(roverCommands);
 
         return roverSystem;
     }
 
-    private RoverCommands parseRoverCommands() {
+    private RoverCommands parseRoverCommands(Boundary boundary) {
         String instructions = scanner.consume();
 
         if (instructions == null || instructions.isEmpty()) {
-            throw new ParsingException("No instructions found");
+            throw new ParsingException("Missing rover instructions");
         }
 
-        RoverCommands roverCommands = new RoverCommands();
-
-        for (int i = 0; i < instructions.length(); i++) {
-            RoverCommand roverCommand = commandCreator.create(
-                    instructions.charAt(i),
-                    navigator,
-                    boundary
-            );
-
-            roverCommands.add(roverCommand);
-        }
-
-        return roverCommands;
+        return instructions
+                .chars()
+                .mapToObj(instruction ->
+                        commandCreator.create(
+                                (char) instruction,
+                                navigator,
+                                boundary
+                        )
+                )
+                .collect(
+                        RoverCommands::new,
+                        RoverCommands::add,
+                        RoverCommands::addAll
+                );
     }
 }

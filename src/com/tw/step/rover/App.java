@@ -1,7 +1,5 @@
 package com.tw.step.rover;
 
-import com.tw.step.rover.boundary.Boundary;
-import com.tw.step.rover.boundary.InfinitePlateau;
 import com.tw.step.rover.commands.CommandCreator;
 import com.tw.step.rover.position.Navigator;
 import com.tw.step.rover.roversystem.RoverSystem;
@@ -9,23 +7,33 @@ import com.tw.step.rover.roversystem.RoverSystemParser;
 import com.tw.step.rover.roversystem.RoverSystemScanner;
 
 public class App {
-    static void main() {
+
+    public static void main(String[] args) {
+
         String text = """
-                1 5 N
-                LFFRFLFFFR
+                5 5
+                1 2 N
+                LFFRFFFF
                 """;
 
         try {
+
             RoverSystemScanner scanner = RoverSystemScanner.from(text);
+
             Navigator navigator = Navigator.create();
-            Boundary boundary = new InfinitePlateau();
+
             CommandCreator commandCreator = new CommandCreator();
-            RoverSystemParser roverSystemParser = new RoverSystemParser(scanner, navigator, boundary, commandCreator);
-            RoverSystem system = roverSystemParser.parse();
-            system.execute();
-            System.out.println(system);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+
+            RoverSystemParser roverSystemParser = new RoverSystemParser(scanner, navigator, commandCreator);
+
+            RoverSystem roverSystem = roverSystemParser.parse();
+
+            roverSystem.execute();
+
+            System.out.println(roverSystem);
+
+        } catch (Exception exception) {
+            System.out.println(exception.getMessage());
         }
     }
 }

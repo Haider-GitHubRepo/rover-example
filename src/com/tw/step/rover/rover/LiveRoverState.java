@@ -13,25 +13,28 @@ public class LiveRoverState implements RoverState {
 
     @Override
     public RoverState turnLeft(Navigator navigator, Boundary boundary) {
-        this.rover.turnLeftInternal(navigator);
+        rover.turnLeftInternal(navigator);
         return this;
     }
 
     @Override
     public RoverState turnRight(Navigator navigator, Boundary boundary) {
-        this.rover.turnRightInternal(navigator);
+        rover.turnRightInternal(navigator);
         return this;
     }
 
     @Override
     public RoverState move(Navigator navigator, Boundary boundary) {
-        Coordinate nextCoordinate = rover.getNextCoordinateInternal(navigator);
-        if(!rover.isWithin(boundary)) {
-            DeadRoverState deadRoverState = new DeadRoverState(rover);
-            return deadRoverState;
+        Coordinate nextCoordinate =
+                rover.getNextCoordinateInternal(navigator);
+
+        if (!boundary.isWithin(nextCoordinate)) {
+            rover.markLost();
+            return new DeadRoverState(rover);
         }
+
         rover.setCoordinate(nextCoordinate);
+
         return this;
     }
-
 }
