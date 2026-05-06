@@ -1,6 +1,7 @@
 package com.tw.step.rover.roversystem;
 
 import com.tw.step.rover.commands.RoverCommands;
+import com.tw.step.rover.exceptions.ParsingException;
 import com.tw.step.rover.rover.Rover;
 
 public class RoverSystem {
@@ -16,6 +17,14 @@ public class RoverSystem {
     }
 
     public void execute() {
+        if (this.rover == null) {
+            throw new ParsingException("Rover not found");
+        }
+
+        if (this.roverCommands == null) {
+            throw new ParsingException("Rover commands not found");
+        }
+
         this.roverCommands.execute(this.rover);
     }
 

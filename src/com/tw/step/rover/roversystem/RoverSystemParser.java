@@ -4,6 +4,7 @@ import com.tw.step.rover.boundary.Boundary;
 import com.tw.step.rover.commands.CommandCreator;
 import com.tw.step.rover.commands.RoverCommand;
 import com.tw.step.rover.commands.RoverCommands;
+import com.tw.step.rover.exceptions.ParsingException;
 import com.tw.step.rover.position.Coordinate;
 import com.tw.step.rover.position.Direction;
 import com.tw.step.rover.position.Navigator;
@@ -23,25 +24,43 @@ public class RoverSystemParser {
     }
 
     private Rover parseRover() {
-        Coordinate coordinate = scanner.scanCoordinate();
-        Direction heading = scanner.scanDirection();
-        return new Rover(coordinate, heading);
+        try {
+            Coordinate coordinate = scanner.scanCoordinate();
+            Direction heading = scanner.scanDirection();
+            return new Rover(coordinate, heading);
+        } catch (Exception exception) {
+            throw new ParsingException("Failed to parse rover");
+        }
     }
 
     public RoverSystem parse() {
         RoverSystem roverSystem = new RoverSystem();
+
         Rover rover = parseRover();
         roverSystem.addRover(rover);
+
         RoverCommands roverCommands = parseRoverCommands();
         roverSystem.addCommands(roverCommands);
+
         return roverSystem;
     }
 
     private RoverCommands parseRoverCommands() {
-        RoverCommands roverCommands = new RoverCommands();
         String instructions = scanner.consume();
+
+        if (instructions == null || instructions.isEmpty()) {
+            throw new ParsingException("No instructions found");
+        }
+
+        RoverCommands roverCommands = new RoverCommands();
+
         for (int i = 0; i < instructions.length(); i++) {
-            RoverCommand roverCommand = commandCreator.create(instructions.charAt(i), navigator, boundary);
+            RoverCommand roverCommand = commandCreator.create(
+                    instructions.charAt(i),
+                    navigator,
+                    boundary
+            );
+
             roverCommands.add(roverCommand);
         }
 
